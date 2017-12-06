@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 # method for generating text, using model
@@ -17,7 +18,7 @@ def generate_text(model, length, vocab_size, ix_to_char):
 
 # Read data and generate vocabulary    
 def load_vocabulary(data_dir, seq_length, batch_size):
-    data = open(data_dir, 'r').read()  # Read data
+    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     chars = list(set(data))  # get possible chars
     VOCAB_SIZE = len(chars)
 
@@ -33,7 +34,7 @@ def load_vocabulary(data_dir, seq_length, batch_size):
     
 # Read in data by batches, atm only for char-to-char
 def data_generator(data_dir, seq_length, batch_size, steps_per_epoch):
-    data = open(data_dir, 'r').read()  # Read data
+    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     chars = list(set(data))  # get possible chars
     VOCAB_SIZE = len(chars)
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM, SimpleRNN
@@ -6,7 +7,8 @@ from RNN_utils import *
 
 def main():
 
-    DATA_DIR = "poems_test_small.txt"
+    # TODO: read in from file.
+    DATA_DIR = "data/poems_test_small.txt"
     BATCH_SIZE = 100
     HIDDEN_DIM = 500
     SEQ_LENGTH = 100
@@ -16,6 +18,7 @@ def main():
     GENERATE_LENGTH = 500
     LAYER_NUM = 2
     EPOCHS = 40
+    GEN_SAMPLES = 5
 
 
     print("Weights:", WEIGHTS)
@@ -45,14 +48,20 @@ def main():
 
     # Training
     if MODE == 'train':
-      while True:
+      while epoch <= EPOCHS:
         print('\n\nEpoch: {}\n'.format(epoch))
         model.fit_generator(data_generator(DATA_DIR, SEQ_LENGTH, BATCH_SIZE, steps_per_epoch), \
         steps_per_epoch=steps_per_epoch, verbose = 1, epochs = 1)
         epoch += 1
-        #generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
         if epoch % 10 == 0:
           model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}.hdf5'.format(LAYER_NUM, HIDDEN_DIM, epoch))
+          
+        # Generate samples
+        print("Generating %i sample poems." % GEN_SAMPLES)
+        for i in range(GEN_SAMPLES):
+            print(i, "\n")
+            generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
+ 
 
     # Else, loading the trained weights and performing generation only
     elif WEIGHTS != '':
