@@ -8,7 +8,7 @@ from RNN_utils import *
 def main():
 
     # TODO: read in from file.
-    DATA_DIR = "data/poems_test_small.txt"
+    DATA_DIR = "data/poets_top_100k.txt"
     BATCH_SIZE = 100
     HIDDEN_DIM = 500
     SEQ_LENGTH = 100
@@ -56,11 +56,11 @@ def main():
         if epoch % 10 == 0:
           model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}.hdf5'.format(LAYER_NUM, HIDDEN_DIM, epoch))
           
-        # Generate samples
-        print("Generating %i sample poems." % GEN_SAMPLES)
-        for i in range(GEN_SAMPLES):
-            print(i, "\n")
-            generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
+      # Generate samples
+      print("Generating %i sample poems." % GEN_SAMPLES)
+      for i in range(GEN_SAMPLES):
+        print(i, "\n")
+        generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
  
 
     # Else, loading the trained weights and performing generation only
