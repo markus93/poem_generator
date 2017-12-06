@@ -3,7 +3,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM, SimpleRNN
 from keras.layers.wrappers import TimeDistributed
-from RNN_utils import *
+from scripts.lstm import *
 
 
 # TODO create class if needed.
