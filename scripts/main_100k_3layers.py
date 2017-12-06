@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from lstm import *
+from scripts.lstm import *
 
 # Call out main function
 if __name__ == "__main__":
