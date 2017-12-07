@@ -43,10 +43,10 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
       while epoch <= total_epochs:
         print('\n\nEpoch: {}\n'.format(epoch))
         model.fit_generator(data_generator(data_dir, seq_length, batch_size, steps_per_epoch), \
-        steps_per_epoch=steps_per_epoch, verbose = 0, epochs = 1)
+        steps_per_epoch=steps_per_epoch, verbose = 1, epochs = 1)
         epoch += 1
         
-        if epoch == 1:  # For h5py test purposes on TensorPort
+        if epoch == 1:  # For h5py test on TensorPort
           model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
         
         if epoch % 10 == 0:
