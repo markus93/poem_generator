@@ -4,6 +4,8 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM, SimpleRNN
 from keras.layers.wrappers import TimeDistributed
 from scripts.RNN_utils import *
+from tensorport import get_data_path
+
 
 
 # TODO create class if needed.
@@ -15,6 +17,13 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
     print("epochs:", total_epochs)
     print("dropout_rate:", dropout_rate)
     print("layers:", layer_num)
+    
+    # Get LOG path (so we could save there the models also)
+    log_path = get_logs_path(local_root)
+    print("Log_path:", log_path)
+    
+    if log_path is None:
+      log_path = ""
 
 
     # Find VOCAB_SIZE and dictionaries
@@ -47,17 +56,19 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
         epoch += 1
         
         if epoch == 1:  # For h5py test on TensorPort
-          model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
+          print("Save weigths")
+          model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
         
         if epoch % 10 == 0:
-          model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
-          generate_text(model, 100, VOCAB_SIZE, ix_to_char)
+          print("Save weights")
+          model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
+          print(generate_text(model, 100, VOCAB_SIZE, ix_to_char))
           
       # Generate samples
       print("Generating %i sample poems." % gen_samples)
       for i in range(gen_samples):
         print(i, "\n")
-        generate_text(model, generate_length, VOCAB_SIZE, ix_to_char)
+        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char))
 
 
     # Else, loading the trained weights and performing generation only
