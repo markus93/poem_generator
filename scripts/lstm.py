@@ -4,7 +4,7 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM, SimpleRNN
 from keras.layers.wrappers import TimeDistributed
 from scripts.RNN_utils import *
-from tensorport import get_data_path
+from tensorport import get_logs_path
 
 
 
