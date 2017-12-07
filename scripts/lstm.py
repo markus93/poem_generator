@@ -19,7 +19,7 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
     print("layers:", layer_num)
     
     # Get LOG path (so we could save there the models also)
-    log_path = get_logs_path(local_root)
+    log_path = get_logs_path("")  # Local root is just root
     print("Log_path:", log_path)
     
     if log_path is None:
