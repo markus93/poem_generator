@@ -8,6 +8,7 @@ def generate_text(model, length, vocab_size, ix_to_char):
 	ix = [np.random.randint(vocab_size)]
 	y_char = [ix_to_char[ix[-1]]]
 	X = np.zeros((1, length, vocab_size))
+    
 	for i in range(length):
 		# appending the last predicted character to sequence
 		X[0, i, :][ix[-1]] = 1

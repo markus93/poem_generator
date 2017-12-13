@@ -9,8 +9,8 @@ from tensorport import get_logs_path
 
 
 # TODO create class if needed.
-def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim = 500, seq_length = 100, weights = "", mode = "train",
-         dropout_rate = 0.2, generate_length = 500, total_epochs = 40,gen_samples = 5, layer_num = 2):
+def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 500, seq_length = 100, weights = "", mode = "train",
+         dropout_rate = 0.2, generate_length = 500, total_epochs = 40,gen_samples = 5, layer_num = 2, save_every = 2):
 
     print("weights:", weights)
     print("mode:", mode)
@@ -42,7 +42,7 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
 
     # Load model if file for weights is given
     if not weights == '':
-      model.load_weights(weights)
+      model.load_weights(log_path + weights)
       epoch = int(weights[weights.rfind('_') + 1:weights.find('.')])
     else:
       epoch = 0
@@ -55,14 +55,11 @@ def lstm(data_dir = "../data/poems_test_small.txt", batch_size = 100, hidden_dim
         steps_per_epoch=steps_per_epoch, verbose = 1, epochs = 1)
         epoch += 1
         
-        if epoch == 1:  # For h5py test on TensorPort
-          print("Save weigths")
-          model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
         
-        if epoch % 10 == 0:
+        if epoch % save_every == 0:
           print("Save weights")
-          model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_epoch_{}_dropout_{}_.hdf5'.format(layer_num, hidden_dim, epoch, dropout_rate))
-          print(generate_text(model, 100, VOCAB_SIZE, ix_to_char))
+          model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_dropout_{}_epoch_{}.hdf5'.format(layer_num, hidden_dim, dropout_rate, epoch))
+          print(generate_text(model, 300, VOCAB_SIZE, ix_to_char))
           
       # Generate samples
       print("Generating %i sample poems." % gen_samples)
