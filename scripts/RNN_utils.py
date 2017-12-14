@@ -32,6 +32,24 @@ def load_vocabulary(data_dir, seq_length, batch_size):
     steps_per_epoch = len(data)//seq_length//batch_size
     
     return VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch
+   
+# Generate idx to word vectors and calculate steps per epoch
+def load_vocabulary_bpe(data_dir, poem_end = "\n\n"):
+
+    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
+    poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
+    words = list(set(data.split()))  # get possible words
+    VOCAB_SIZE = len(words)
+
+    print('Data length: {} poems'.format(len(poems)))
+    print('Vocabulary size: {} subwords'.format(VOCAB_SIZE))
+
+    ix_to_word = {ix:subword for ix, subword in enumerate(words)}  # index to char map
+    word_to_ix = {subword:ix for ix, subword in enumerate(words)}  # char to index map
+    
+    steps_per_epoch = len(poems)  # One poem per batch
+    
+    return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch
     
 # Read in data by batches, atm only for char-to-char
 def data_generator(data_dir, seq_length, batch_size, steps_per_epoch):
@@ -73,6 +91,60 @@ def data_generator(data_dir, seq_length, batch_size, steps_per_epoch):
                 y[i] = target_sequence
         
         if batch_nr == (steps_per_epoch-1):  # Because we start from zero
+            batch_nr = 0  # Back to beginning - so we could loop indefinitely
+        else:
+            batch_nr += 1
+                
+        
+        yield(X, y)
+        
+# Read in data by batches, atm only for char-to-char
+def data_generator_bpe(data_dir, poem_end):
+    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
+    poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
+    words = list(set(data.split()))  # get possible words
+    VOCAB_SIZE = len(words)
+
+    print('Data length: {} poems'.format(len(poems)))
+    print('Vocabulary size: {} subwords'.format(VOCAB_SIZE))
+
+    ix_to_word = {ix:subword for ix, subword in enumerate(words)}  # index to subword map
+    word_to_ix = {subword:ix for ix, subword in enumerate(words)}  # subword to index map
+    
+    batch_nr = 0
+    steps_per_epoch = len(poems)
+    
+    batch_size = 1 ## Atm only one poem per batch no padding added
+    
+    while True:
+    
+        poem = poems[batch_nr]
+                    
+        subwords = poem.split()  # Split into subwords
+        seq_length = len(subwords) - 1  # One less to predict
+        
+        # TODO should use start and end token?
+
+        X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
+        y = np.zeros((batch_size, seq_length, VOCAB_SIZE))
+        
+        X_sequence = subwords[:-1]  # Take all but last subword to learn
+        X_sequence_ix = [word_to_ix[value] for value in X_sequence]
+        input_sequence = np.zeros((seq_length, VOCAB_SIZE))
+
+        for j in range(len(X_sequence)):
+            input_sequence[j][X_sequence_ix[j]] = 1.
+            X[0] = input_sequence  # Batch size 1
+
+        y_sequence = subwords[1:]  # Next subword to predict
+        y_sequence_ix = [word_to_ix[value] for value in y_sequence]
+        target_sequence = np.zeros((seq_length, VOCAB_SIZE))
+        
+        for j in range(len(y_sequence)):
+            target_sequence[j][y_sequence_ix[j]] = 1.
+            y[0] = target_sequence
+        
+        if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
             batch_nr = 0  # Back to beginning - so we could loop indefinitely
         else:
             batch_nr += 1

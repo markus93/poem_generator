@@ -22,6 +22,7 @@ if __name__ == "__main__":
     ap.add_argument('-gen_samples', type=int, default=5)
     ap.add_argument('-layer_num', type=int, default=2)
     ap.add_argument('-save_every', type=int, default=2)
+    ap.add_argument('-use_subwords', type=bool, default=False)
 
     args = vars(ap.parse_args())
     
