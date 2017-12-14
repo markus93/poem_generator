@@ -18,27 +18,31 @@ def generate_text(model, length, vocab_size, ix_to_char):
 	return ('').join(y_char)
 
 # Read data and generate vocabulary    
-def load_vocabulary(data_dir, seq_length, batch_size):
+def load_vocabulary(data_dir, seq_length, batch_size, use_subwords):
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
+    
+    if use_subwords:  # Split data into subwords
+        data = data.split()
+    
     chars = list(set(data))  # get possible chars
     VOCAB_SIZE = len(chars)
 
-    print('Data length: {} characters'.format(len(data)))
-    print('Vocabulary size: {} characters'.format(VOCAB_SIZE))
+    print('Data length: {} chars/subwords'.format(len(data)))
+    print('Vocabulary size: {} chars/subwords'.format(VOCAB_SIZE))
 
-    ix_to_char = {ix:char for ix, char in enumerate(chars)}  # index to char map
+    ix_to_char = {ix:char for ix, char in enumerate(chars)}  # index to char map  # can also be subwords here
     char_to_ix = {char:ix for ix, char in enumerate(chars)}  # char to index map
     
-    steps_per_epoch = len(data)//seq_length//batch_size
+    steps_per_epoch = int(len(data)/seq_length/batch_size)
     
-    return VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch
-   
-# Generate idx to word vectors and calculate steps per epoch
-def load_vocabulary_bpe(data_dir, poem_end = "\n\n"):
+    return VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data
+    
+# Load vocabulary poem by poem
+def load_vocabulary_poem(data_dir, poem_end):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
-    poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
-    words = list(set(data.split()))  # get possible words
+    poems = data.split(poem_end)  # list with all the words in data
+    words = list(set(poems))  # get possible words
     VOCAB_SIZE = len(words)
 
     print('Data length: {} poems'.format(len(poems)))
@@ -47,18 +51,16 @@ def load_vocabulary_bpe(data_dir, poem_end = "\n\n"):
     ix_to_word = {ix:subword for ix, subword in enumerate(words)}  # index to char map
     word_to_ix = {subword:ix for ix, subword in enumerate(words)}  # char to index map
     
-    steps_per_epoch = len(poems)  # One poem per batch
+    steps_per_epoch = len(data)  # One poem per batch
     
     return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch
+
     
 # Read in data by batches, atm only for char-to-char
-def data_generator(data_dir, seq_length, batch_size, steps_per_epoch):
-    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
+def data_generator(data, seq_length, batch_size, steps_per_epoch):
+
     chars = list(set(data))  # get possible chars
     VOCAB_SIZE = len(chars)
-
-    print('Data length: {} characters'.format(len(data)))
-    print('Vocabulary size: {} characters'.format(VOCAB_SIZE))
 
     ix_to_char = {ix:char for ix, char in enumerate(chars)}  # index to char map
     char_to_ix = {char:ix for ix, char in enumerate(chars)}  # char to index map
@@ -99,7 +101,8 @@ def data_generator(data_dir, seq_length, batch_size, steps_per_epoch):
         yield(X, y)
         
 # Read in data by batches, atm only for char-to-char
-def data_generator_bpe(data_dir, poem_end):
+def data_generator_poem(data_dir, poem_end):
+
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
     words = list(set(data.split()))  # get possible words

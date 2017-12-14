@@ -18,12 +18,8 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     print("dropout_rate:", dropout_rate)
     print("layers:", layer_num)
 
-
-    # Find VOCAB_SIZE and dictionaries
-    if use_subwords:
-        VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch = load_vocabulary_bpe(data_dir, poem_end)
-    else:
-        VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch = load_vocabulary(data_dir, seq_length, batch_size)
+    # Load data and vocabulary
+    VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data = load_vocabulary(data_dir, seq_length, batch_size, use_subwords)
 
     # Creating and compiling the Network
     model = Sequential()
@@ -48,10 +44,8 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
       while epoch <= total_epochs:
         print('\n\nEpoch: {}\n'.format(epoch))
         
-        if use_subwords:
-            data_gen = data_generator_bpe(data_dir, poem_end)
-        else:
-            data_gen = data_generator(data_dir, seq_length, batch_size, steps_per_epoch)
+
+        data_gen = data_generator(data, seq_length, batch_size, steps_per_epoch)
         
         model.fit_generator(data_gen, \
         steps_per_epoch=steps_per_epoch, verbose = 1, epochs = 1)
