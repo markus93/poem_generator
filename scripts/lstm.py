@@ -17,6 +17,8 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     print("epochs:", total_epochs)
     print("dropout_rate:", dropout_rate)
     print("layers:", layer_num)
+    
+    log_path = ""
 
     # Load data and vocabulary
     VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data = load_vocabulary(data_dir, seq_length, batch_size, use_subwords)
