@@ -5,16 +5,17 @@ import numpy as np
 # TODO add randomness to output.
 def generate_text(model, length, vocab_size, ix_to_char):
 	# starting with random character
-	ix = [np.random.randint(vocab_size)]
-	y_char = [ix_to_char[ix[-1]]]
+	ix = np.random.randint(vocab_size)
+	y_char = [ix_to_char[ix]]
 	X = np.zeros((1, length, vocab_size))
     
 	for i in range(length):
 		# appending the last predicted character to sequence
-		X[0, i, :][ix[-1]] = 1
-		#ix_to_char[ix[-1]], end=""
-		ix = np.argmax(model.predict(X[:, :i+1, :])[0], 1)
-		y_char.append(ix_to_char[ix[-1]])
+		X[0, i, :][ix] = 1
+		print(ix_to_char[ix], end="")
+		pred = model.predict(X[:, :i+1, :])[0]
+		ix = np.random.choice(np.arange(vocab_size), p = pred[-1])  # Chooses prediction with probability of next char
+		y_char.append(ix_to_char[ix])
 	return ('').join(y_char)
 
 # Read data and generate vocabulary    

@@ -37,7 +37,7 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     # Load model if file for weights is given
     if not weights == '':
       model.load_weights(log_path + weights)
-      epoch = int(weights[weights.rfind('_') + 1:weights.find('.')])
+      epoch = int(weights[weights.rfind('_') + 1:weights.rfind('.')])
     else:
       epoch = 0
 
@@ -70,7 +70,7 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
       # Loading the trained weights
       #model.load_weights(weights)
       print("Translating")
-      for i in range(5):
+      for i in range(gen_samples):
         print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char))
         print('\n\n')
     else:
