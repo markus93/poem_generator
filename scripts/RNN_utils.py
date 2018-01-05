@@ -25,7 +25,7 @@ def load_vocabulary(data_dir, seq_length, batch_size, use_subwords):
     if use_subwords:  # Split data into subwords
         data = data.split()
     
-    chars = list(set(data))  # get possible chars
+    chars = sorted(list(set(data)))  # get possible chars
     VOCAB_SIZE = len(chars)
 
     print('Data length: {} chars/subwords'.format(len(data)))
@@ -43,7 +43,7 @@ def load_vocabulary_poem(data_dir, poem_end):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     poems = data.split(poem_end)  # list with all the words in data
-    words = list(set(poems))  # get possible words
+    words = sorted(list(set(poems)))  # get possible words
     VOCAB_SIZE = len(words)
 
     print('Data length: {} poems'.format(len(poems)))
@@ -60,7 +60,7 @@ def load_vocabulary_poem(data_dir, poem_end):
 # Read in data by batches, atm only for char-to-char
 def data_generator(data, seq_length, batch_size, steps_per_epoch):
 
-    chars = list(set(data))  # get possible chars
+    chars = sorted(list(set(data)))  # get possible chars
     VOCAB_SIZE = len(chars)
 
     ix_to_char = {ix:char for ix, char in enumerate(chars)}  # index to char map
@@ -106,7 +106,7 @@ def data_generator_poem(data_dir, poem_end):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
-    words = list(set(data.split()))  # get possible words
+    words = sorted(list(set(data.split())))  # get possible words
     VOCAB_SIZE = len(words)
 
     print('Data length: {} poems'.format(len(poems)))

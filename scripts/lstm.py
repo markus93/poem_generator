@@ -44,9 +44,8 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     # Training
     if mode == 'train':
       while epoch <= total_epochs:
+      
         print('\n\nEpoch: {}\n'.format(epoch))
-        
-
         data_gen = data_generator(data, seq_length, batch_size, steps_per_epoch)
         
         model.fit_generator(data_gen, \
