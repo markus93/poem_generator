@@ -3,20 +3,30 @@ import numpy as np
 
 # method for generating text, using model
 # TODO add randomness to output.
-def generate_text(model, length, vocab_size, ix_to_char):
-	# starting with random character
-	ix = np.random.randint(vocab_size)
-	y_char = [ix_to_char[ix]]
-	X = np.zeros((1, length, vocab_size))
+def generate_text(model, length, vocab_size, ix_to_char, use_subwords, end_symbol = "$"):
+    # starting with random character
+    ix = np.random.randint(vocab_size)
+    y_char = [ix_to_char[ix]]
+    X = np.zeros((1, length, vocab_size))
+
+    if use_subwords:
+        end = ' '
+    else:
+        end = ''
     
-	for i in range(length):
-		# appending the last predicted character to sequence
-		X[0, i, :][ix] = 1
-		print(ix_to_char[ix], end="")
-		pred = model.predict(X[:, :i+1, :])[0]
-		ix = np.random.choice(np.arange(vocab_size), p = pred[-1])  # Chooses prediction with probability of next char
-		y_char.append(ix_to_char[ix])
-	return ('').join(y_char)
+    for i in range(length):
+        # appending the last predicted character to sequence
+        X[0, i, :][ix] = 1
+        print(ix_to_char[ix], end=end)
+        pred = model.predict(X[:, :i+1, :])[0]
+        ix = np.random.choice(np.arange(vocab_size), p = pred[-1])  # Chooses prediction with probability of next char
+
+        if end_symbol == ix_to_char[ix]:
+            break
+
+        y_char.append(ix_to_char[ix])    
+        
+    return (end).join(y_char)
 
 # Read data and generate vocabulary    
 def load_vocabulary(data_dir, seq_length, batch_size, use_subwords):
@@ -39,11 +49,13 @@ def load_vocabulary(data_dir, seq_length, batch_size, use_subwords):
     return VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data
     
 # Load vocabulary poem by poem
-def load_vocabulary_poem(data_dir, poem_end, use_subwords):
+def load_vocabulary_poem(data_dir, batch_size, poem_end, use_subwords, end_symbol):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     poems = data.split(poem_end)  # list with all the poems in data
     poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
+    
+    seq_length = len(max(poems, key=len)) + 1 # +1 so the longest poem has also end symbol
     
     if use_subwords:  # Split data into subwords
         data_new = data.split()  # Later initial data needed
@@ -51,6 +63,7 @@ def load_vocabulary_poem(data_dir, poem_end, use_subwords):
     else:
         chars = sorted(list(set(data)))  # get possible chars
         
+    chars.append(end_symbol)
         
     VOCAB_SIZE = len(chars)
 
@@ -60,7 +73,7 @@ def load_vocabulary_poem(data_dir, poem_end, use_subwords):
     ix_to_word = {ix:char for ix, char in enumerate(chars)}  # index to char map
     word_to_ix = {char:ix for ix, char in enumerate(chars)}  # char to index map
     
-    steps_per_epoch = len(poems)  # One poem per batch
+    steps_per_epoch = int(len(poems)/batch_size)  # One poem per batch
     
     return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch, data
 
@@ -110,15 +123,21 @@ def data_generator(data, seq_length, batch_size, steps_per_epoch):
         yield(X, y)
         
 # Read in data in poem by poem
-def data_generator_poem(data, poem_end, use_subwords):
+def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "$"):
     
     poems = data.split(poem_end)
     poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
+    
+    # Get longest poem to set the sequence length
+    seq_length = len(max(poems, key=len)) + 1 # +1 so the longest poem has also end symbol
 
+    print("Subwords:", use_subwords)
+    
     if use_subwords:
         data = data.split()
     
     chars = sorted(list(set(data)))  # get possible chars/subwords
+    chars.append(end_symbol)
     VOCAB_SIZE = len(chars)   
     
     
@@ -131,7 +150,7 @@ def data_generator_poem(data, poem_end, use_subwords):
     batch_nr = 0
     steps_per_epoch = len(poems)
     
-    batch_size = 1 ## Atm only one poem per batch, no padding added
+    #batch_size = 1 ## Atm only one poem per batch, no padding added
     
     while True:
     
@@ -139,10 +158,14 @@ def data_generator_poem(data, poem_end, use_subwords):
         
         if use_subwords:
             elements = poem.split()
+            elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbols 
         else:
             elements = poem
+            elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbols 
+
+            
                     
-        seq_length = len(elements) - 1  # One less to predict
+        #seq_length = len(elements) - 1  # One less to predict
 
         X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
         y = np.zeros((batch_size, seq_length, VOCAB_SIZE))
