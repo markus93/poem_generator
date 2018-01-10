@@ -137,6 +137,14 @@ def data_generator_poem(data, poem_end, use_subwords):
         subwords = poem.split()  # Split into subwords
         seq_length = len(elements) - 1  # One less to predict
         
+        if seq_length <= 0:  # In case empty sequence
+            continue
+            
+        if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
+            batch_nr = 0  # Back to beginning - so we could loop indefinitely
+        else:
+            batch_nr += 1
+        
         # TODO should use start and end token?
 
         X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
@@ -157,11 +165,6 @@ def data_generator_poem(data, poem_end, use_subwords):
         for j in range(len(y_sequence)):
             target_sequence[j][y_sequence_ix[j]] = 1.
             y[0] = target_sequence
-        
-        if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
-            batch_nr = 0  # Back to beginning - so we could loop indefinitely
-        else:
-            batch_nr += 1
                 
         
         yield(X, y)
