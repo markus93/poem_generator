@@ -46,9 +46,12 @@ def load_vocabulary_poem(data_dir, poem_end, use_subwords):
     poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
     
     if use_subwords:  # Split data into subwords
-        data = data.split()
-    
-    chars = sorted(list(set(data)))  # get possible chars/subwords
+        data_new = data.split()  # Later initial data needed
+        chars = sorted(list(set(data_new)))  # get possible subwords
+    else:
+        chars = sorted(list(set(data)))  # get possible chars
+        
+        
     VOCAB_SIZE = len(chars)
 
     print('Data length: {} poems'.format(len(poems)))
@@ -108,19 +111,22 @@ def data_generator(data, seq_length, batch_size, steps_per_epoch):
         
 # Read in data in poem by poem
 def data_generator_poem(data, poem_end, use_subwords):
-
+    
     poems = data.split(poem_end)
     poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
-    
-    subwords = sorted(list(set(data)))  # get possible chars/subwords
-    VOCAB_SIZE = len(subwords)
-    
 
+    if use_subwords:
+        data = data.split()
+    
+    chars = sorted(list(set(data)))  # get possible chars/subwords
+    VOCAB_SIZE = len(chars)   
+    
+    
     print('Data length: {} poems'.format(len(poems)))
     print('Vocabulary size: {} chars/subwords'.format(VOCAB_SIZE))
 
-    ix_to_word = {ix:char for ix, char in enumerate(subwords)}  # index to char/subword map
-    word_to_ix = {char:ix for ix, char in enumerate(subwords)}  # char/subword to index map
+    ix_to_word = {ix:char for ix, char in enumerate(chars)}  # index to char/subword map
+    word_to_ix = {char:ix for ix, char in enumerate(chars)}  # char/subword to index map
     
     batch_nr = 0
     steps_per_epoch = len(poems)
@@ -136,7 +142,6 @@ def data_generator_poem(data, poem_end, use_subwords):
         else:
             elements = poem
                     
-        subwords = poem.split()  # Split into subwords
         seq_length = len(elements) - 1  # One less to predict
 
         X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
