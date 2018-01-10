@@ -43,6 +43,7 @@ def load_vocabulary_poem(data_dir, poem_end, use_subwords):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
     poems = data.split(poem_end)  # list with all the poems in data
+    poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
     
     if use_subwords:  # Split data into subwords
         data = data.split()
@@ -109,9 +110,7 @@ def data_generator(data, seq_length, batch_size, steps_per_epoch):
 def data_generator_poem(data, poem_end, use_subwords):
 
     poems = data.split(poem_end)
-    
-    poems = [s for s in poems if len(s) >= 2]
-
+    poems = [s for s in poems if len(s) >= 2]  # Leave out empty poems.
     
     subwords = sorted(list(set(data)))  # get possible chars/subwords
     VOCAB_SIZE = len(subwords)
@@ -158,6 +157,11 @@ def data_generator_poem(data, poem_end, use_subwords):
         for j in range(len(y_sequence)):
             target_sequence[j][y_sequence_ix[j]] = 1.
             y[0] = target_sequence
+        
+        if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
+            batch_nr = 0  # Back to beginning - so we could loop indefinitely
+        else:
+            batch_nr += 1
                 
         
         yield(X, y)
