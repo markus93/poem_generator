@@ -110,6 +110,9 @@ def data_generator_poem(data, poem_end, use_subwords):
 
     poems = data.split(poem_end)
     
+    poems = [s for s in poems if len(s) >= 2]
+
+    
     subwords = sorted(list(set(data)))  # get possible chars/subwords
     VOCAB_SIZE = len(subwords)
     
@@ -136,16 +139,6 @@ def data_generator_poem(data, poem_end, use_subwords):
                     
         subwords = poem.split()  # Split into subwords
         seq_length = len(elements) - 1  # One less to predict
-        
-        if seq_length <= 0:  # In case empty sequence
-            continue
-            
-        if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
-            batch_nr = 0  # Back to beginning - so we could loop indefinitely
-        else:
-            batch_nr += 1
-        
-        # TODO should use start and end token?
 
         X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
         y = np.zeros((batch_size, seq_length, VOCAB_SIZE))
