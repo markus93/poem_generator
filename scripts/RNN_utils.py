@@ -39,22 +39,26 @@ def load_vocabulary(data_dir, seq_length, batch_size, use_subwords):
     return VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data
     
 # Load vocabulary poem by poem
-def load_vocabulary_poem(data_dir, poem_end):
+def load_vocabulary_poem(data_dir, poem_end, use_subwords):
 
     data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
-    poems = data.split(poem_end)  # list with all the words in data
-    words = sorted(list(set(poems)))  # get possible words
-    VOCAB_SIZE = len(words)
+    poems = data.split(poem_end)  # list with all the poems in data
+    
+    if use_subwords:  # Split data into subwords
+        data = data.split()
+    
+    chars = sorted(list(set(data)))  # get possible chars/subwords
+    VOCAB_SIZE = len(chars)
 
     print('Data length: {} poems'.format(len(poems)))
-    print('Vocabulary size: {} subwords'.format(VOCAB_SIZE))
+    print('Vocabulary size: {} chars/subwords'.format(VOCAB_SIZE))
 
-    ix_to_word = {ix:subword for ix, subword in enumerate(words)}  # index to char map
-    word_to_ix = {subword:ix for ix, subword in enumerate(words)}  # char to index map
+    ix_to_word = {ix:char for ix, char in enumerate(chars)}  # index to char map
+    word_to_ix = {char:ix for ix, char in enumerate(chars)}  # char to index map
     
-    steps_per_epoch = len(data)  # One poem per batch
+    steps_per_epoch = len(poems)  # One poem per batch
     
-    return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch
+    return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch, data
 
     
 # Read in data by batches, atm only for char-to-char
@@ -101,38 +105,44 @@ def data_generator(data, seq_length, batch_size, steps_per_epoch):
         
         yield(X, y)
         
-# Read in data by batches, atm only for char-to-char
-def data_generator_poem(data_dir, poem_end):
+# Read in data in poem by poem
+def data_generator_poem(data, poem_end, use_subwords):
 
-    data = open(data_dir, 'r', encoding="utf-8").read()  # Read data
-    poems = data.split(poem_end)  # TODO splits also verses (so not actually poems atm)
-    words = sorted(list(set(data.split())))  # get possible words
-    VOCAB_SIZE = len(words)
+    poems = data.split(poem_end)
+    
+    subwords = sorted(list(set(data)))  # get possible chars/subwords
+    VOCAB_SIZE = len(subwords)
+    
 
     print('Data length: {} poems'.format(len(poems)))
-    print('Vocabulary size: {} subwords'.format(VOCAB_SIZE))
+    print('Vocabulary size: {} chars/subwords'.format(VOCAB_SIZE))
 
-    ix_to_word = {ix:subword for ix, subword in enumerate(words)}  # index to subword map
-    word_to_ix = {subword:ix for ix, subword in enumerate(words)}  # subword to index map
+    ix_to_word = {ix:char for ix, char in enumerate(subwords)}  # index to char/subword map
+    word_to_ix = {char:ix for ix, char in enumerate(subwords)}  # char/subword to index map
     
     batch_nr = 0
     steps_per_epoch = len(poems)
     
-    batch_size = 1 ## Atm only one poem per batch no padding added
+    batch_size = 1 ## Atm only one poem per batch, no padding added
     
     while True:
     
         poem = poems[batch_nr]
+        
+        if use_subwords:
+            elements = poem.split()
+        else:
+            elements = poem
                     
         subwords = poem.split()  # Split into subwords
-        seq_length = len(subwords) - 1  # One less to predict
+        seq_length = len(elements) - 1  # One less to predict
         
         # TODO should use start and end token?
 
         X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
         y = np.zeros((batch_size, seq_length, VOCAB_SIZE))
         
-        X_sequence = subwords[:-1]  # Take all but last subword to learn
+        X_sequence = elements[:-1]  # Take all but last subword to learn
         X_sequence_ix = [word_to_ix[value] for value in X_sequence]
         input_sequence = np.zeros((seq_length, VOCAB_SIZE))
 
@@ -140,7 +150,7 @@ def data_generator_poem(data_dir, poem_end):
             input_sequence[j][X_sequence_ix[j]] = 1.
             X[0] = input_sequence  # Batch size 1
 
-        y_sequence = subwords[1:]  # Next subword to predict
+        y_sequence = elements[1:]  # Next subword to predict
         y_sequence_ix = [word_to_ix[value] for value in y_sequence]
         target_sequence = np.zeros((seq_length, VOCAB_SIZE))
         

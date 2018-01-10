@@ -17,11 +17,16 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     print("epochs:", total_epochs)
     print("dropout_rate:", dropout_rate)
     print("layers:", layer_num)
+    print("hidden dim:", hidden_dim)
+    print("Sequence length:", seq_length)  # If seq_length == -1 use poems
     
     log_path = ""
 
     # Load data and vocabulary
-    VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data = load_vocabulary(data_dir, seq_length, batch_size, use_subwords)
+    if seq_length != -1:
+        VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data = load_vocabulary(data_dir, seq_length, batch_size, use_subwords)
+    else:
+        VOCAB_SIZE, ix_to_char, char_to_ix, steps_per_epoch, data = load_vocabulary_poem(data_dir, poem_end, use_subwords)
 
     # Creating and compiling the Network
     model = Sequential()
@@ -46,8 +51,11 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
       while epoch <= total_epochs:
       
         print('\n\nEpoch: {}\n'.format(epoch))
-        data_gen = data_generator(data, seq_length, batch_size, steps_per_epoch)
         
+        if seq_length != -1:   # Generate sequence by sequence
+            data_gen = data_generator(data, seq_length, batch_size, steps_per_epoch)
+        else:   # Generate poem by poem
+            data_gen = data_generator_poem(data, poem_end, use_subwords)
         model.fit_generator(data_gen, \
         steps_per_epoch=steps_per_epoch, verbose = 1, epochs = 1)
         epoch += 1        
