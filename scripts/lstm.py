@@ -78,7 +78,7 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
       #model.load_weights(weights)
       print("Translating")
       for i in range(gen_samples):
-        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char))
+        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, end_symbol))
         print('\n\n')
     else:
       print('\n\nNothing to do!')

@@ -2,7 +2,6 @@ from __future__ import print_function
 import numpy as np
 
 # method for generating text, using model
-# TODO add randomness to output.
 def generate_text(model, length, vocab_size, ix_to_char, use_subwords, end_symbol = "$"):
     # starting with random character
     ix = np.random.randint(vocab_size)
@@ -74,6 +73,8 @@ def load_vocabulary_poem(data_dir, batch_size, poem_end, use_subwords, end_symbo
     word_to_ix = {char:ix for ix, char in enumerate(chars)}  # char to index map
     
     steps_per_epoch = int(len(poems)/batch_size)  # One poem per batch
+    
+    print("Steps per epoch:", steps_per_epoch)
     
     return VOCAB_SIZE, ix_to_word, word_to_ix, steps_per_epoch, data
 
