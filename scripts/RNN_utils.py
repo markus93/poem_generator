@@ -140,7 +140,6 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
     chars.append(end_symbol)
     VOCAB_SIZE = len(chars)   
     
-    
     print('Data length: {} poems'.format(len(poems)))
     print('Vocabulary size: {} chars/subwords'.format(VOCAB_SIZE))
 
@@ -150,41 +149,41 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
     batch_nr = 0
     steps_per_epoch = len(poems)
     
-    #batch_size = 1 ## Atm only one poem per batch, no padding added
-    
+    # Generate data matrices
     while True:
     
-        poem = poems[batch_nr]
+        for i in range(0, batch_size):   
         
-        if use_subwords:
-            elements = poem.split()
-            elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbols 
-        else:
-            elements = poem
-            elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbols 
-
+            poem = poems[batch_nr*batch_size + i]
             
-                    
-        #seq_length = len(elements) - 1  # One less to predict
+            if use_subwords:
+                elements = poem.split()
+                elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbols 
+            else:
+                elements = poem
+                elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbols 
+       
+                        
+            #seq_length = len(elements) - 1  # One less to predict
 
-        X = np.zeros((batch_size, seq_length, VOCAB_SIZE))  # input data
-        y = np.zeros((batch_size, seq_length, VOCAB_SIZE))
-        
-        X_sequence = elements[:-1]  # Take all but last subword to learn
-        X_sequence_ix = [word_to_ix[value] for value in X_sequence]
-        input_sequence = np.zeros((seq_length, VOCAB_SIZE))
+            X = np.zeros((batch_size, seq_length-1, VOCAB_SIZE))  # input data
+            y = np.zeros((batch_size, seq_length-1, VOCAB_SIZE))
+            
+            X_sequence = elements[:-1]  # Take all but last subword to learn
+            X_sequence_ix = [word_to_ix[value] for value in X_sequence]
+            input_sequence = np.zeros((seq_length-1, VOCAB_SIZE))
 
-        for j in range(len(X_sequence)):
-            input_sequence[j][X_sequence_ix[j]] = 1.
-            X[0] = input_sequence  # Batch size 1
+            for j in range(len(X_sequence)):
+                input_sequence[j][X_sequence_ix[j]] = 1.
+                X[i] = input_sequence  # Batch size 1
 
-        y_sequence = elements[1:]  # Next subword to predict
-        y_sequence_ix = [word_to_ix[value] for value in y_sequence]
-        target_sequence = np.zeros((seq_length, VOCAB_SIZE))
-        
-        for j in range(len(y_sequence)):
-            target_sequence[j][y_sequence_ix[j]] = 1.
-            y[0] = target_sequence
+            y_sequence = elements[1:]  # Next subword to predict
+            y_sequence_ix = [word_to_ix[value] for value in y_sequence]
+            target_sequence = np.zeros((seq_length-1, VOCAB_SIZE))
+            
+            for j in range(len(y_sequence)):
+                target_sequence[j][y_sequence_ix[j]] = 1.
+                y[i] = target_sequence
         
         if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)
             batch_nr = 0  # Back to beginning - so we could loop indefinitely
