@@ -166,9 +166,11 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             
             if use_subwords:
                 elements = poem.split()
+                len_poem = len(elements)
                 elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbol + phantom symbols 
             else:
                 elements = poem
+                len_poem = len(elements)
                 elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbol + phantom symbols
        
                         
@@ -184,7 +186,7 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             for j in range(len(X_sequence)):
                 inp = 1.
                 # Phantom symbols
-                if j == len(elements) + 2:
+                if j == len_poem + 2:
                     inp = 0.
                 input_sequence[j][X_sequence_ix[j]] = inp
                 X[i] = input_sequence  # Batch size 1
@@ -196,7 +198,7 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             for j in range(len(y_sequence)):
                 inp = 1.
                 # Phantom symbols
-                if j == len(elements) + 2:
+                if j == len_poem:
                     inp = 0.
                 target_sequence[j][y_sequence_ix[j]] = inp
                 y[i] = target_sequence
