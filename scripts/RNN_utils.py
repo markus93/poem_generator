@@ -1,8 +1,9 @@
 from __future__ import print_function
 import numpy as np
+from random import random
 
 # method for generating text, using model
-def generate_text(model, length, vocab_size, ix_to_char, use_subwords, end_symbol = "$"):
+def generate_text(model, length, vocab_size, ix_to_char, use_subwords, temp = 0.8, end_symbol = "$"):
     # starting with random character
     ix = np.random.randint(vocab_size)
     y_char = [ix_to_char[ix]]
@@ -18,7 +19,13 @@ def generate_text(model, length, vocab_size, ix_to_char, use_subwords, end_symbo
         X[0, i, :][ix] = 1
         print(ix_to_char[ix], end=end)
         pred = model.predict(X[:, :i+1, :])[0]
-        ix = np.random.choice(np.arange(vocab_size), p = pred[-1])  # Chooses prediction with probability of next char
+        
+        rand_nr = random()
+        
+        if temp > rand_nr:  # next symbol predicted based on distribution
+            ix = np.random.choice(np.arange(vocab_size), p = pred[-1])  # Chooses prediction with probability of next char
+        else:  # Most probable char
+            ix = np.argmax(model.predict(X[:, :i+1, :])[0], 1)[-1]  # Only last index needed
 
         if end_symbol == ix_to_char[ix]:
             break
@@ -148,7 +155,7 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
     word_to_ix = {char:ix for ix, char in enumerate(chars)}  # char/subword to index map
     
     batch_nr = 0
-    steps_per_epoch = len(poems)
+    steps_per_epoch = int(len(poems)/batch_size)
     
     # Generate data matrices
     while True:
@@ -159,10 +166,10 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             
             if use_subwords:
                 elements = poem.split()
-                elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbols 
+                elements = elements + (seq_length-len(elements))*[end_symbol]  # Add end_symbol + phantom symbols 
             else:
                 elements = poem
-                elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbols 
+                elements = elements + (seq_length-len(elements))*end_symbol  # Add end_symbol + phantom symbols
        
                         
             #seq_length = len(elements) - 1  # One less to predict
@@ -175,7 +182,11 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             input_sequence = np.zeros((seq_length-1, VOCAB_SIZE))
 
             for j in range(len(X_sequence)):
-                input_sequence[j][X_sequence_ix[j]] = 1.
+                inp = 1.
+                # Phantom symbols
+                if j == len(elements) + 2:
+                    inp = 0.
+                input_sequence[j][X_sequence_ix[j]] = inp
                 X[i] = input_sequence  # Batch size 1
 
             y_sequence = elements[1:]  # Next subword to predict
@@ -183,7 +194,11 @@ def data_generator_poem(data, batch_size, poem_end, use_subwords, end_symbol = "
             target_sequence = np.zeros((seq_length-1, VOCAB_SIZE))
             
             for j in range(len(y_sequence)):
-                target_sequence[j][y_sequence_ix[j]] = 1.
+                inp = 1.
+                # Phantom symbols
+                if j == len(elements) + 2:
+                    inp = 0.
+                target_sequence[j][y_sequence_ix[j]] = inp
                 y[i] = target_sequence
         
         if batch_nr == (steps_per_epoch-1):  # Because we start from zero (in case many epochs learnt together)

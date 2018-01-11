@@ -10,7 +10,7 @@ from scripts.RNN_utils import *
 # TODO create class if needed.
 def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 500, seq_length = 100, weights = "", mode = "train",
          dropout_rate = 0.2, generate_length = 500, total_epochs = 10, gen_samples = 5, layer_num = 2, save_every = 1, 
-         use_subwords = False, poem_end = "\n\n", end_symbol = "$"):
+         use_subwords = False, poem_end = "\n\n", temp = 1, end_symbol = "$"):
 
     print("weights:", weights)
     print("mode:", mode)
@@ -19,6 +19,7 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
     print("layers:", layer_num)
     print("hidden dim:", hidden_dim)
     print("Sequence length:", seq_length)  # If seq_length == -1 use poems
+    print("Temperature:", temp)
     
     log_path = ""
 
@@ -63,13 +64,13 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
         if epoch % save_every == 0:
           print("Save weights")
           model.save_weights(log_path + 'checkpoint_layer_{}_hidden_{}_dropout_{}_epoch_{}.hdf5'.format(layer_num, hidden_dim, dropout_rate, epoch))
-          print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, end_symbol))
+          print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, temp, end_symbol))
           
       # Generate samples
       print("Generating %i sample poems." % gen_samples)
       for i in range(gen_samples):
         print(i, "\n")
-        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, end_symbol))
+        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, temp, end_symbol))
 
 
     # Else, loading the trained weights and performing generation only
@@ -78,7 +79,7 @@ def lstm(data_dir = "data/poems_test_small.txt", batch_size = 100, hidden_dim = 
       #model.load_weights(weights)
       print("Translating")
       for i in range(gen_samples):
-        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, end_symbol))
+        print(generate_text(model, generate_length, VOCAB_SIZE, ix_to_char, use_subwords, temp, end_symbol))
         print('\n\n')
     else:
       print('\n\nNothing to do!')
